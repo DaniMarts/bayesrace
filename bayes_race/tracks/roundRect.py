@@ -14,35 +14,41 @@ import matplotlib.pyplot as plt
 
 
 class Rectangular(Track):
-	"""	Rectangular with any length, breadth and width"""
+	"""	Rectangular with any length, breadth, width and corner radius (r_corner)"""
 
-	def __init__(self, length, breadth, width):
-		self.length = length
-		self.breadth = breadth
-		self.width = width
+	def __init__(self, length, breadth, width, r_corner):
+		self.r_corner = r_corner  # radius of the corner along the centreline
+		self.length = length - 2*r_corner  # length of the straights
+		self.breadth = breadth - 2*r_corner  # breadth of the straights
+		self.width = width  # track width
 		self.track_width = width
+
 
 		n_samples = 500
 		self.x_center, self.y_center = self._trajectory(
-			n_waypoints=n_samples, 
+			n_waypoints=n_samples,
 			n_samples=n_samples
 			)
 		self.x_outer, self.y_outer = self._trajectory(
-			n_waypoints=n_samples, 
-			n_samples=n_samples, 
-			length=self.length+self.width, 
-			breadth=self.breadth+self.width
+			n_waypoints=n_samples,
+			n_samples=n_samples,
+			length=self.length+self.width,
+			breadth=self.breadth+self.width,
+			r_corner=self.r_corner+self.width
 			)
 		self.x_inner, self.y_inner = self._trajectory(
-			n_waypoints=n_samples, 
-			n_samples=n_samples, 
-			length=self.length-self.width, 
-			breadth=self.breadth-self.width
+			n_waypoints=n_samples,
+			n_samples=n_samples,
+			length=self.length-self.width,
+			breadth=self.breadth-self.width,
+			r_corner=self.r_corner - self.width
 			)
 
 		# calculating centreline, theta_track and track length
 		# do not call super init, parametric is faster
-		self._parametric()
+		# self._parametric()
+		super(self).__init__()
+
 		# self.load_raceline()
 		#
 		# self.psi_init = 0.
@@ -77,12 +83,18 @@ class Rectangular(Track):
 			breadth = self.breadth
 		else:
 			breadth = kwargs["breadth"]
+		if "r_corner" not in kwargs:
+			r_corner = self.r_corner
+		else:
+			r_corner = kwargs["r_corner"]
 
-		s = np.linspace(0, 2*(length+breadth)-1e-2, n_waypoints)
+		# arc length is 2*(breadth+length) + 4*(1/4*2*pi*r_corner)
+		s = np.linspace(0, 2*(length+breadth)+2*np.pi*r_corner-1e-2, n_waypoints)
 		wx = np.empty([n_waypoints])
 		wy = np.empty([n_waypoints])
-		for ids, theta in enumerate(s):  # ? theta is the distance along the track centreline
-			wx[ids], wy[ids] = self.param_to_xy(theta, **kwargs)  # ? getting the coordinates of the waypoints
+		for ids, theta in enumerate(s):  # theta is the distance along the track centreline
+			# wx[ids], wy[ids] = self.param_to_xy(theta, **kwargs)  # getting the coordinates of the waypoints
+			wx[ids], wy[ids] = self._param2xy(theta)  # getting the coordinates of the waypoints
 
 		if return_waypoints_only:
 			return wx, wy
