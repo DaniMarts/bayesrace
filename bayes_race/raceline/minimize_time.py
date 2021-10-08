@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 
 from bayes_race.utils import odeintRK6
 from bayes_race.params import ORCA, F110
-from bayes_race.tracks import ETHZ, ETHZMobil, UCB
+from bayes_race.tracks import ETHZ, ETHZMobil, UCB, Rectangular
 
 
 def define_params(mass, lf, lr):
@@ -26,7 +26,8 @@ def define_params(mass, lf, lr):
     gravity = 9.81          # gravity
     Wr = lf/(lf+lr)         # percent of weight on rear tires 
     muf = 1                 # coefficient of friction
-    
+
+    # maximum frictional force
     Fmax = muf*mass*gravity
 
     params = {}
@@ -34,7 +35,7 @@ def define_params(mass, lf, lr):
     params['lr'] = lr
     params['mass'] = mass
     params['Fmax'] = Fmax
-    params['Flongmax'] = Fmax*Wr
+    params['Flongmax'] = Fmax*Wr  # assuming only two wheel can accelerate (either read or forward)
     return params
 
 def define_path(x, y, plot_results=True):
@@ -306,7 +307,8 @@ if __name__ == "__main__":
     """
     # define waypoints
     # for example we choose center line but can be any trajectory
-    track = UCB()
+    # track = UCB()
+    track = Rectangular(20, 40, 6)
     x, y = track.x_center, track.y_center
 
     # define vehicle params

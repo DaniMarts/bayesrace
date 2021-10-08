@@ -9,7 +9,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from bayes_race.utils import Spline2D
-from bayes_race.tracks import MAP2
+from bayes_race.tracks import *
 from bayes_race.params import ORCA, F110
 from bayes_race.raceline import calcMinimumTime
 
@@ -28,20 +28,29 @@ class randomTrajectory:
 
 	def sample_nodes(self, scale):
 		""" sample width vector of length `n_waypoints`
+		return:
+			width: a vector *random* perpendicular distances from the centreline for each waypoint
 		"""
 		# shrink to prevent getting too close to corners
 		track_width = self.track.track_width*scale
+		# make a width vector, n_waypoints long, with each element being a random value between -width/2 and width/2
 		width = -track_width/2 + track_width*np.random.rand(self.n_waypoints)
 		return width
 
 	def calculate_xy(self, width, last_index, theta=None):
-		"""	compute x, y coordinates from sampled nodes (width) 
+		"""	compute x, y coordinates from sampled nodes (widths)
+		TODO: try to add more control points to theta where the curvature is high, so it doesn't cut corners
+		params:
+			widths: width vector, n_waypoints long, with each element being a random value between -width/2 and width/2
+			theta: python list containing cumulative distance along the centreline, for each point
+		return:
+			wx, wy: the coordinates of each waypoint in the track
 		"""
 		track = self.track
 		n_waypoints = width.shape[0]
-		eps = 1/5/n_waypoints*track.track_length
+		eps = 1/5/n_waypoints*track.track_length  # ? some form of spacing between the nodes
 
-		# starting and terminal points are fixed
+		# starting and terminal points are fixed # ? but do they have to be?
 		wx = np.zeros(n_waypoints+2)
 		wy = np.zeros(n_waypoints+2)
 		wx[0] = track.x_center[0]
@@ -51,23 +60,29 @@ class randomTrajectory:
 		if theta is None:
 			theta = np.linspace(0, track.track_length, n_waypoints+2)
 		else:
-			assert width.shape[0]==len(theta), 'dims not equal'
+			assert n_waypoints==len(theta), 'dims not equal'
 			theta_start = np.array([0])
 			theta_end = np.array([self.track.theta_track[last_index]])
+			# in the end, theta will also have n_waypoints+2 elements
 			theta = np.concatenate([theta_start, theta, theta_end])
 
 		# compute x, y for every way point parameterized by arc length
-		for idt in range(1,n_waypoints+1):
+		for idt in range(1,n_waypoints+1):  # this won't touch the endpoints
+			# calculating where on the actual track each point (x, y) will be
 			x_, y_ = track.param_to_xy(theta[idt]+eps)
 			_x, _y = track.param_to_xy(theta[idt]-eps)
 			x, y = track.param_to_xy(theta[idt])
 			norm = np.sqrt((y_-_y)**2 + (x_-_x)**2)
+			# the coordinates of the waypoints
 			wx[idt] = x - width[idt-1]*(y_-_y)/norm
 			wy[idt] = y + width[idt-1]*(x_-_x)/norm
 		return wx, wy
 
 	def fit_cubic_splines(self, wx, wy, n_samples):
 		"""	fit cubic splines on the waypoints
+		params:
+			wx, wy: the coordinates of each waypoint in the track
+			n_samples: how many points to resample after fitting the spline
 		"""
 		sp = Spline2D(wx, wy)
 		s = np.linspace(0, sp.s[-1]-1e-3, n_samples)
@@ -84,16 +99,17 @@ if __name__ == '__main__':
 	"""
 
 	TRACK_NAME = 'MAP2'
-	SCALE = 0.90
+	SCALE = 0.90  # so that no waypoint is on the edges or corners
 
 	# choose vehicle params and specify indices of the nodes
 	params = F110()
-	track = MAP2()
+	track = MAP8()
 	NODES = [5, 15, 25, 35, 45, 55, 65, 75, 85, 95, 105, 115, 5]
 	LASTIDX = 1
+	# TODO: find way to complete multiple laps
 
 	print(track.x_raceline.shape)
-	# find cooresponding distance in path coordinates
+	# find corresponding distance in path coordinates
 	theta = track.theta_track[NODES]
 	n_waypoints = len(theta)
 
@@ -120,10 +136,6 @@ if __name__ == '__main__':
 		n_samples=n_samples
 		)
 
-	# uncomment to calculate minimum time to traverse
-	# t_random = calcMinimumTime(x_random, y_random, **params)
-	# print('time to traverse random trajectory: {}'.format(t_random))
-
 	# plot
 	fig = track.plot(color='k', grid=False)
 	x_center, y_center = track.x_center, track.y_center
@@ -137,3 +149,8 @@ if __name__ == '__main__':
 	plt.ylabel('y [m]')
 	plt.legend(loc=0)
 	plt.show()
+
+
+	# uncomment to calculate minimum time to traverse
+	# t_random = calcMinimumTime(x_random, y_random, **params)
+	# print('time to traverse random trajectory: {}'.format(t_random))

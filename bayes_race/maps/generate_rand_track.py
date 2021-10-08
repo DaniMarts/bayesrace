@@ -14,6 +14,7 @@ from matplotlib.collections import PatchCollection
 
 NUM_MAPS = 20
 WIDTH = 5.0
+
 def create_track():
     CHECKPOINTS = 12
     SCALE = 15.0
@@ -126,26 +127,36 @@ def create_track():
     track_xy = [(x, y) for (a1, b1, x, y) in track]
     track_xy = np.asarray(track_xy)
     track_poly = shp.Polygon(track_xy)
-    track_xy_offset_in = track_poly.buffer(WIDTH)
-    track_xy_offset_out = track_poly.buffer(-WIDTH)
+    track_xy_offset_in = track_poly.buffer(-WIDTH)
+    track_xy_offset_out = track_poly.buffer(WIDTH)
     track_xy_offset_in_np = np.array(track_xy_offset_in.exterior)
     track_xy_offset_out_np = np.array(track_xy_offset_out.exterior)
+    # returning an array of the centreline waypoints, interior and exterior wall points
     return track_xy, track_xy_offset_in_np, track_xy_offset_out_np
 
 
 def convert_track(track, track_int, track_ext, iter):
-
+    """
+    params:
+        track: np.array representing track centreline points
+        track_int: np.array representing inner wall points
+        track_ext: np.array representing outer wall points
+        iter: a number passes by a loop, to look for the right map
+    """
     # converts track to image and saves the centerline as waypoints
     fig, ax = plt.subplots()
-    fig.set_size_inches(20, 20)
-    ax.plot(*track_int.T, color='black', linewidth=3)
-    ax.plot(*track_ext.T, color='black', linewidth=3)
+    # fig.set_size_inches(20, 20)
+    ax.plot(*track_int.T, color='gray', linewidth=3)  # plotting the inside
+    ax.plot(*track_ext.T, color='black', linewidth=3)  # plotting the outside
     plt.tight_layout()
     ax.set_aspect('equal')
-    ax.set_xlim(-180, 300)
-    ax.set_ylim(-300, 300)
-    plt.axis('off')
-    plt.savefig('maps/map' + str(iter) + '.png', dpi=80)
+    ax.set_xlim(-50, 50)
+    ax.set_ylim(-50, 50)
+    # ax.set_xlim(-180, 300)
+    # ax.set_ylim(-300, 300)
+    # plt.axis('off')
+    plt.show()
+    # plt.savefig('maps/map' + str(iter) + '.png', dpi=80)
 
     map_width, map_height = fig.canvas.get_width_height()
     print('map size: ', map_width, map_height)
@@ -160,17 +171,13 @@ def convert_track(track, track_int, track_ext, iter):
     map_origin_x = -origin_x_pix*0.05
     map_origin_y = -origin_y_pix*0.05
 
-    # convert image using cv2
-    cv_img = cv2.imread('maps/map' + str(iter) + '.png')
-    cv2.imwrite('maps/map' + str(iter) + '.pgm', cv_img)
-
     # create yaml file
-    yaml = open('maps/map' + str(iter) + '.yaml', 'w')
-    yaml.write('image: map' + str(iter) + '.pgm\n')
-    yaml.write('resolution: 0.050000\n')
-    yaml.write('origin: [' + str(map_origin_x) + ',' + str(map_origin_y) + ', 0.000000]\n')
-    yaml.write('negate: 0\noccupied_thresh: 0.45\nfree_thresh: 0.196')
-    yaml.close()
+    # yaml = open('maps/map' + str(iter) + '.yaml', 'w')
+    # yaml.write('image: map' + str(iter) + '.pgm\n')
+    # yaml.write('resolution: 0.050000\n')
+    # yaml.write('origin: [' + str(map_origin_x) + ',' + str(map_origin_y) + ', 0.000000]\n')
+    # yaml.write('negate: 0\noccupied_thresh: 0.45\nfree_thresh: 0.196')
+    # yaml.close()
     plt.close()
 
     # saving track centerline as a csv in ros coords
@@ -179,6 +186,9 @@ def convert_track(track, track_int, track_ext, iter):
         waypoints_csv.write(str(0.05*row[0]) + ', ' + str(0.05*row[1]) + '\n')
     waypoints_csv.close()
 
+    # convert image using cv2
+    # cv_img = cv2.imread('maps/map' + str(iter) + '.png')
+    # cv2.imwrite('maps/map' + str(iter) + '.pgm', cv_img)
 
 
 if __name__ == '__main__':

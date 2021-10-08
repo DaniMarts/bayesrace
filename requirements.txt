@@ -1,0 +1,10 @@
+setuptools~=52.0.0
+numpy~=1.19.5
+casadi~=3.5.1
+scipy~=1.5.4
+scikit-learn~=0.22.2.post1
+matplotlib~=3.1.2
+pandas~=1.0.3
+cvxpy~=1.0.15
+botorch~=0.1.4
+gpytorch~=0.3.6

@@ -28,8 +28,9 @@ from matplotlib import pyplot as plt
 #####################################################################
 # set device in torch
 
-# device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 device = torch.device("cpu")
+# device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print(device)
 dtype = torch.float
 
 #####################################################################
@@ -44,7 +45,7 @@ N_TRIALS = 3                # number of times bayesopt is run
 N_BATCH = 100               # new observations after initialization
 MC_SAMPLES = 64             # monte carlo samples
 N_INITIAL_SAMPLES = 10      # samples to initialize GP
-PLOT_RESULTS = False        # whether to plot results
+PLOT_RESULTS = True        # whether to plot results
 SAVE_RESULTS = True         # whether to save results
 N_WAYPOINTS = 100           # resampled waypoints
 SCALE = 0.95                # shrinking factor for track width
@@ -85,7 +86,7 @@ def evaluate_y(x_eval, mean_y=None, std_y=None):
     y_eval = np.zeros(n_eval)
     for ids in range(n_eval):
         wx, wy = rand_traj.calculate_xy(
-            width=x_eval[ids],
+            widths=x_eval[ids],
             last_index=NODES[LASTIDX],
             theta=theta,
             )
@@ -226,11 +227,15 @@ def optimize():
             
             # optimize acquisition function and evaluate new sample
             new_x_ei, new_y_ei = optimize_acqf_and_get_observation(qEI, mean_y=mean_y, std_y=std_y)
-            print('EI: time to traverse is {:.4f}s'.format(-(new_y_ei.numpy().ravel()[0]*std_y+mean_y)))
+            # print('EI: time to traverse is {:.4f}s'.format(-(new_y_ei.cpu().numpy().ravel()[0]*std_y+mean_y)))
+            print('EI: time to traverse is {:.4f}s'.format(-(new_y_ei.flatten()[0]*std_y+mean_y)))
             new_x_nei, new_y_nei = optimize_acqf_and_get_observation(qNEI, mean_y=mean_y, std_y=std_y)
-            print('NEI: time to traverse is {:.4f}s'.format(-(new_y_nei.numpy().ravel()[0]*std_y+mean_y)))
+            # print('NEI: time to traverse is {:.4f}s'.format(-(new_y_nei.numpy().ravel()[0]*std_y+mean_y)))
+            print('NEI: time to traverse is {:.4f}s'.format(-(new_y_nei.flatten()[0]*std_y+mean_y)))
             new_x_random, new_y_random = sample_random_observations(mean_y=mean_y, std_y=std_y)
-            print('Random: time to traverse is {:.4f}s'.format(-(new_y_random.numpy().ravel()[0]*std_y+mean_y)))
+            # print('Random: time to traverse is {:.4f}s'.format(-(new_y_random.numpy().ravel()[0]*std_y+mean_y)))
+            print('Random: time to traverse is {:.4f}s'.format(-(new_y_random.flatten()[0]*std_y+mean_y)))
+
 
             # update training points
             train_x_ei = torch.cat([train_x_ei, new_x_ei])
@@ -341,6 +346,8 @@ def optimize():
 
 
 if __name__ == '__main__':
-    
+    start = time.time()
     optimize()
+    dur = time.time() - start
+    print(f"\nIt took {dur}s to run using {device}.")
 

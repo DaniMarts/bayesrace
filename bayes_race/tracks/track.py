@@ -92,6 +92,7 @@ class Track:
 		"""
 		theta_track = self.theta_track
 		idt = 0
+		# ? incrementing until the end of the list or the specified distance along the centreline (theta) is reached?
 		while idt<theta_track.shape[0]-1 and theta_track[idt]<=theta:
 			idt+=1
 		deltatheta = (theta-theta_track[idt-1])/(theta_track[idt]-theta_track[idt-1])
@@ -148,12 +149,13 @@ class Track:
 		optxy = proj[:,optidx]
 		return optxy, optidx
 
-	def _plot(self, color='g', grid=True, figsize=(6.4, 4.8)):
+	def _plot(self, color='g', grid=True, figsize=(6.4, 4.8), plot_centre=False):
 		""" plot center, inner and outer track lines
 		"""
 		fig = plt.figure(figsize=figsize)
 		plt.grid(grid)
-		# plt.plot(self.x_center, self.y_center, '--'+color, lw=0.75, alpha=0.5)
+		if plot_centre:
+			plt.plot(self.x_center, self.y_center, '--r', lw=0.75, alpha=0.5)
 		plt.plot(self.x_outer, self.y_outer, color, lw=0.75, alpha=0.5)
 		plt.plot(self.x_inner, self.y_inner, color, lw=0.75, alpha=0.5)
 		plt.scatter(0, 0, color='k', alpha=0.2)

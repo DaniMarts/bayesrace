@@ -42,12 +42,12 @@ class Rectangular(Track):
 
 		# do not call super init, parametric is faster
 		self._parametric()
-		self.load_raceline()
-
-		self.psi_init = 0.
-		self.x_init = self.x_raceline[0]
-		self.y_init = self.y_raceline[0]
-		self.vx_init = 0.	
+		# self.load_raceline()
+		#
+		# self.psi_init = 0.
+		# self.x_init = self.x_raceline[0]
+		# self.y_init = self.y_raceline[0]
+		# self.vx_init = 0.
 
 	def _parametric(self):
 		"""	calculate track length, center line and theta for center line
@@ -79,8 +79,8 @@ class Rectangular(Track):
 		s = np.linspace(0, 2*(length+breadth)-1e-2, n_waypoints)
 		wx = np.empty([n_waypoints])
 		wy = np.empty([n_waypoints])
-		for ids, theta in enumerate(s):
-			wx[ids], wy[ids] = self.param_to_xy(theta, **kwargs)
+		for ids, theta in enumerate(s):  # ? theta is the distance along the track centreline
+			wx[ids], wy[ids] = self.param_to_xy(theta, **kwargs)  # ? getting the coordinates of the waypoints
 
 		if return_waypoints_only:
 			return wx, wy
@@ -92,7 +92,7 @@ class Rectangular(Track):
 			ix, iy = sp.calc_position(i_s)
 			x.append(ix)
 			y.append(iy)
-		return x, y
+		return x, y  # ? the coordinates of each point in the spline
 
 	def param_to_xy(self, theta, **kwargs):
 		"""	convert distance along the track to x, y coordinates
