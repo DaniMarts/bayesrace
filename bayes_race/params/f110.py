@@ -7,19 +7,19 @@ __email__ = 'achinj@seas.upenn.edu'
 
 def F110():
 
-	lf = 0.15875			# front tyres from center of gravity [m]
-	lr = 0.17145			# read tyres from center of gravity [m]
+	lf = 0.15875			# distance of front tyres from center of gravity [m]
+	lr = 0.17145			# distance of rear tyres from center of gravity [m]
 	mass = 3.74 			# vehicle mass [kg]
 	Iz = 0.04712 			# moment of inertia [kgm^2]
 	Cf = 2.3 				# front cornering stiffness
 	Cr = 2.3 				# rear cornering stiffness
-	Csf = 4.718
-	Csr = 5.4562
-	hcog = 0.074
-	mu = 0.523
+	Csf = 4.718             # ?
+	Csr = 5.4562            # ?
+	hcog = 0.074            # ? height of center of gravity
+	mu = 0.523              # ? friction coefficient
 	min_v = 0.
 	max_v = 20.
-	switch_v = 1.
+	switch_v = 1.           # ?
 	max_acc = 9.51 			# max acceleration [m/s^2]
 	min_acc = -13.26 		# max deceleration [m/s^2]
 	max_steer = 0.4189 		# max steering angle [rad]

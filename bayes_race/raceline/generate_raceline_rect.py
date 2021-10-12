@@ -35,7 +35,7 @@ dtype = torch.float
 #####################################################################
 # simulation settings
 
-SEED = np.random.randint(333)
+SEED = np.random.randint(777)
 torch.manual_seed(SEED)
 np.random.seed(SEED)
 
@@ -49,15 +49,15 @@ SAVE_RESULTS = True  # whether to save results
 N_WAYPOINTS = 100  # resampled waypoints
 SCALE = 0.9  # shrinking factor for track width
 LASTIDX = 2  # fixed node at the end DO NOT CHANGE
-
+TRACK_NAME = "Rectangular"
 # define indices for the nodes
 # NODES = [33, 67, 116, 166, 203, 239, 274, 309, 344, 362, 382, 407, 434, 448, 470, 514, 550, 586, 622, 657, 665]
 
 #####################################################################
 # track specific data
 
-params = ORCA()
-track = Rectangular(length=20, breadth=40, width=6)
+params = F110()
+track = Rectangular(length=6, breadth=4, width=0.8)
 
 track_width = track.track_width * SCALE
 # theta = track.theta_track[NODES]
@@ -65,37 +65,55 @@ track_width = track.track_width * SCALE
 N_DIMS = 20
 n_waypoints = N_DIMS
 
+# an object representing a random trajectory within the track
 rand_traj = randomTrajectory(track=track, n_waypoints=n_waypoints)
 
+# defining the boundary of the vector containing the random distances normal to the centreline
 bounds = torch.tensor([[-track_width / 2] * N_DIMS, [track_width / 2] * N_DIMS], device=device, dtype=dtype)
 
 
 def evaluate_y(x_eval, mean_y=None, std_y=None):
-	""" evaluate true output for given x (distance of nodes from center line)
-		TODO: parallelize evaluations
 	"""
+	evaluate true output for given x (distance of nodes from center line)
+
+	Args:
+		x_eval: an array containing the distance of each point to the centeline. Could be multiple rows,
+			if parallelization is implemented
+		mean_y: mean time, from previous evaluations
+		std_y: standard deviation of time, from previous evaluations
+
+	Returns:
+		(array): a list containing the times taken to traverse each trajectory parameterized by the rows of x_eval
+	Todo:
+		* parallelize evaluations
+
+	"""
+
 	if type(x_eval) is torch.Tensor:
 		is_tensor = True
-		x_eval = x_eval.cpu().numpy()
+		x_eval = x_eval.cpu().numpy()  # convert the Tensor to a numpy array
 	else:
 		is_tensor = False
 
-	if len(x_eval.shape) == 1:
-		x_eval = x_eval.reshape(1, -1)
-	n_eval = x_eval.shape[0]
+	if len(x_eval.shape) == 1:  # if the shape is something like (n,)
+		x_eval = x_eval.reshape(1, -1)  # reshape it to (1, n)
+	n_eval = x_eval.shape[0]  # the number of elements in x_eval (i.e., n)
 
-	y_eval = np.zeros(n_eval)
-	for ids in range(n_eval):
+	y_eval = np.zeros(n_eval)  # stores the time taken to complete a trajectory parameterized by x_eval
+	for ids in range(n_eval):  # for each row of input widths in x_eval
+		# getting the coordinate for each point in the trajectory parameterized by x_eval
 		wx, wy = rand_traj.calculate_xy(
 			width=x_eval[ids],
 			last_index=LASTIDX,
 			# theta=theta,
 		)
+		# fitting splines on the (wx, wy) points and resampling new points from it
 		x, y = rand_traj.fit_cubic_splines(
 			wx=wx,
 			wy=wy,
 			n_samples=N_WAYPOINTS,
 		)
+		# calculating minimum time to complete the trajectory
 		y_eval[ids] = -calcMinimumTime(x, y, **params)  # we want to max negative lap times
 
 	if mean_y and std_y:
@@ -114,8 +132,8 @@ def generate_initial_data(n_samples=10):
 	train_y_ = np.zeros([n_samples, 1])
 
 	for ids in range(n_samples):
-		width_random = rand_traj.sample_nodes(scale=SCALE)
-		t_random = evaluate_y(width_random)
+		width_random = rand_traj.sample_nodes(scale=SCALE)  # generating a (1, n_samples) vector with random widths
+		t_random = evaluate_y(width_random)  # calculating the time to complete a lap parameterized by width_random
 		train_x[ids, :] = width_random
 		train_y_[ids, :] = t_random
 
@@ -311,7 +329,7 @@ def optimize():
 
 	if SAVE_RESULTS:
 		np.savez(
-			'results/{}_raceline_data-{}.npz'.format('Rectangular', savestr),
+			'results/{}_raceline_data-{}.npz'.format(TRACK_NAME, savestr),
 			y_ei=y_ei,
 			y_nei=y_nei,
 			y_rnd=y_rnd,
@@ -346,7 +364,7 @@ def optimize():
 		plt.ylabel('best lap times')
 		plt.grid(True)
 		plt.legend(loc=0)
-		plt.savefig('results/{}_laptimes-{}.png'.format('Rectangular', savestr), dpi=600)
+		plt.savefig('results/{}_laptimes-{}.png'.format(TRACK_NAME, savestr), dpi=600)
 		plt.show()
 
 
@@ -355,4 +373,3 @@ if __name__ == '__main__':
 	optimize()
 	dur = time.time() - start
 	print(f"\nIt took {dur}s to run using {device}.")
-

@@ -57,8 +57,8 @@ class Dynamic(Model):
 	def sim_continuous(self, x0, u, t):
 		"""	simulates the nonlinear continuous model with given input vector
 			by numerical integration using 6th order Runge Kutta method
-			x0 is the initial state of size 6x1
-			u is the input vector of size 2xn
+			x0 is the initial state of size 6x1: [x, y, psi, vx, vy, omega]^T
+			u is the input vector of size 2xn: [acc/pwm, steer]^T
 			t is the time vector of size 1x(n+1)
 		"""
 		n_steps = u.shape[1]

@@ -21,12 +21,18 @@ from matplotlib.colors import ListedColormap, BoundaryNorm
 #####################################################################
 # which data
 
+# SAVE_RESULTS = True
 SAVE_RESULTS = False
 
 # saved results 1
-# savestr = '20211007203017'
-# savestr = '20211007230356'
-savestr = '20211007234343'
+# savestr = '20211007203017'  # garbage line
+# savestr = '20211007230356'  # garbage line
+# savestr = '20211007234343'  # garbage line
+# savestr = '20211008225852'  # good line on 6x4, 0.5m wide track, 1 iteration, F110
+# savestr = '20211008234318'  # good line on 6x4, 0.8m wide track, 3 iterations, F110
+# savestr = '20211009125025'  # good line on 6x4, 0.8m wide track, 3 iterations, F110
+savestr = '20211009182342'  # good line on 6x4, 0.8m wide track, 3 iterations, F110
+
 TRACK_NAME = 'Rectangular'
 
 if savestr is '' or TRACK_NAME is '':
@@ -34,8 +40,8 @@ if savestr is '' or TRACK_NAME is '':
 
 # choose vehicle params and specify indices of the nodes
 if TRACK_NAME is 'Rectangular':
-	params = ORCA()
-	track = Rectangular(length=20, breadth=40, width=6)
+	params = F110()
+	track = Rectangular(length=6, breadth=4, width=0.5)
 	LASTIDX = 2
 
 # elif TRACK_NAME is 'ETHZMobil':
@@ -99,7 +105,7 @@ if SAVE_RESULTS:
 
 #####################################################################
 # plot best trajectory
-filepath = 'results/{}_bestlap.png'.format(TRACK_NAME)  # path for saving result
+filepath = 'results/{}_bestlap3.png'.format(TRACK_NAME)  # path for saving result
 
 n_waypoints = N_DIMS
 n_samples = 500

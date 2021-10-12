@@ -38,14 +38,20 @@ class randomTrajectory:
 		return width
 
 	def calculate_xy(self, width, last_index, theta=None):
-		"""	compute x, y coordinates from sampled nodes (widths)
-		TODO: try to add more control points to theta where the curvature is high, so it doesn't cut corners
-		params:
-			widths: width vector, n_waypoints long, with each element being a random value between -width/2 and width/2
-			theta: python list containing cumulative distance along the centreline, for each point
-		return:
-			wx, wy: the coordinates of each waypoint in the track
 		"""
+		compute x, y coordinates from sampled nodes (width)
+		Args:
+			width: width vector, n_waypoints long, with each element being a random value between -width/2 and width/2
+			last_index:
+			theta: python list containing cumulative distance along the centreline, for each point
+
+		Returns:
+			(array, array): the coordinates of each waypoint in the track
+		Todo:
+			* try to add more control points to theta where the curvature is high, so it doesn't cut corners.
+			* make start width and end width adjustable, so the car can start/finish not on the centreline.
+		"""
+
 		track = self.track
 		n_waypoints = width.shape[0]
 		eps = 1/5/n_waypoints*track.track_length  # ? some form of spacing between the nodes
@@ -53,10 +59,10 @@ class randomTrajectory:
 		# starting and terminal points are fixed # ? but do they have to be?
 		wx = np.zeros(n_waypoints+2)
 		wy = np.zeros(n_waypoints+2)
-		wx[0] = track.x_center[0]
-		wy[0] = track.y_center[0]
-		wx[-1] = track.x_center[last_index]
-		wy[-1] = track.y_center[last_index]
+		wx[0] = track.x_center[0]  # this will make it always start in the center. Not always ideal.
+		wy[0] = track.y_center[0]  # this will make it always start in the center. Not always ideal.
+		wx[-1] = track.x_center[last_index]  # this will make it always end in the center. Not always ideal.
+		wy[-1] = track.y_center[last_index]  # this will make it always end in the center. Not always ideal.
 		if theta is None:
 			theta = np.linspace(0, track.track_length, n_waypoints+2)
 		else:
@@ -80,7 +86,7 @@ class randomTrajectory:
 
 	def fit_cubic_splines(self, wx, wy, n_samples):
 		"""	fit cubic splines on the waypoints
-		params:
+		Args:
 			wx, wy: the coordinates of each waypoint in the track
 			n_samples: how many points to resample after fitting the spline
 		"""
