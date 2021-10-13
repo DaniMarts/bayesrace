@@ -158,8 +158,12 @@ class Track:
 			plt.plot(self.x_center, self.y_center, '--r', lw=0.75, alpha=0.5)
 		plt.plot(self.x_outer, self.y_outer, color, lw=0.75, alpha=0.5)
 		plt.plot(self.x_inner, self.y_inner, color, lw=0.75, alpha=0.5)
+
+		# plt.plot(self.x_outer, self.y_outer, "r", lw=1, alpha=1, label="outer")
+		# plt.plot(self.x_inner, self.y_inner, color, lw=3, alpha=0.5, label="inner")
 		plt.scatter(0, 0, color='k', alpha=0.2)
 		plt.axis('equal')
+		# plt.legend()
 		return fig
 
 	def plot_raceline(self):

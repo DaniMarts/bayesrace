@@ -3,15 +3,15 @@ import matplotlib.pyplot as plt
 import csv
 
 # def generete_square_track():
-w = 0.8  # m, track width
+WIDTH = 0.8  # m, track width
 Length = 6  # m, the length of the track along the centreline
 Breadth = 4  # m, the breath of the track along the centreline
-r_i = 3*w/4  # m, inner radius
-r_o = r_i + w  # outer radius
+r_i = 3 * WIDTH / 4  # m, inner radius
+r_o = r_i + WIDTH  # outer radius
 r_c = (r_i + r_o)/2  # radius of the centre line
 
-breadth = Breadth - 2*r_c
-length = Length - 2*r_c
+breadth = Breadth - 2*r_c  # breadth of the straights
+length = Length - 2*r_c  # length of the straights
 
 theta = np.pi/2  # rad, the angle of the corner
 r_r = r_i + (r_o - r_i)/(1-np.cos(theta/2))  # radius of the geometric line
@@ -35,7 +35,7 @@ arc4 = np.array([r_c * (1 - np.sin(thetas)), -r_c * np.cos(thetas)])
 centreline = np.hstack((seg1, arc1, seg2, arc2, seg3, arc3, seg4, arc4))
 centreline[1] += r_c  # shifting the track up
 
-with open("rect_track.csv", 'w') as rect_track:
+with open("rect_track.csv", 'WIDTH') as rect_track:
 	writer = csv.writer(rect_track, delimiter=',', lineterminator="\n")
 	writer.writerows(centreline.T)
 

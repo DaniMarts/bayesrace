@@ -12,8 +12,12 @@ def ComputeIO(track):
 
     x_center = track.x_center
     y_center = track.y_center
-    x_raceline = track.x_raceline
-    y_raceline = track.y_raceline
+    # not all tracks have a raceline from creation
+    try:
+        x_raceline = track.x_raceline
+        y_raceline = track.y_raceline
+    except:
+        print("No raceline was found")
 
     ns = x_center.shape[0]
     x_inner = np.zeros([ns])
