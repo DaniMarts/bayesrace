@@ -49,7 +49,7 @@ class Track:
 		theta_track = np.cumsum(np.linalg.norm(diff, 2, axis=0))
 		self.theta_track = np.concatenate([np.array([0]), theta_track])
 
-	def _load_raceline(self, wx, wy, n_samples, v=None, t=None):
+	def _load_raceline(self, wx, wy, n_samples, v=None, t=None, smooth=False):
 		"""	load raceline and fit cubic splines
 		"""
 		# x, y, theta = self._fit_cubic_splines(
@@ -59,9 +59,18 @@ class Track:
 		# 	)
 		# theta = np.cumsum(np.linalg.norm(np.diff(np.array([x,y])), 2, axis=0))
 		# theta = np.concatenate([np.array([0]), theta])
-		self.spline = Spline2D(wx, wy)
-		x, y = wx, wy
+		self.spline = sp = Spline2D(wx, wy)
 		theta = self.spline.s
+
+		if smooth:
+			s = np.linspace(0, theta[-1] - 0.001, n_samples)
+			x, y = [], []
+			for i_s in s:
+				ix, iy = sp.calc_position(i_s)
+				x.append(ix)
+				y.append(iy)
+		else:
+			x, y = wx, wy
 
 		self.x_raceline = np.array(x)
 		self.y_raceline = np.array(y)
@@ -155,19 +164,15 @@ class Track:
 		fig = plt.figure(figsize=figsize)
 		plt.grid(grid)
 		if plot_centre:
-			plt.plot(self.x_center, self.y_center, '--r', lw=0.75, alpha=0.5)
-		plt.plot(self.x_outer, self.y_outer, color, lw=0.75, alpha=0.5)
-		plt.plot(self.x_inner, self.y_inner, color, lw=0.75, alpha=0.5)
-
-		# plt.plot(self.x_outer, self.y_outer, "r", lw=1, alpha=1, label="outer")
-		# plt.plot(self.x_inner, self.y_inner, color, lw=3, alpha=0.5, label="inner")
-		plt.scatter(0, 0, color='k', alpha=0.2)
+			plt.plot(self.x_center, self.y_center, '--g', lw=0.5, alpha=0.5)
+		plt.plot(self.x_outer, self.y_outer, color, lw=1, alpha=1)
+		plt.plot(self.x_inner, self.y_inner, color, lw=1, alpha=1)
+		plt.scatter(0, 0, color='k', alpha=0.2)  # plotting the centre of the track
 		plt.axis('equal')
-		# plt.legend()
 		return fig
 
 	def plot_raceline(self):
-		""" plot center, inner and outer track lines
+		""" plot center, inner and outer track lines, as well as the raceline
 		"""
 		fig = self._plot()
 		plt.plot(self.x_raceline, self.y_raceline, 'b', lw=1)

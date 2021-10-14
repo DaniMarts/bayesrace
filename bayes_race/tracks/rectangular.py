@@ -152,18 +152,33 @@ class Rectangular(Track):
 		theta = self._xy2param(x, y)
 		return theta
 
-	def load_raceline(self):
-		"""	load raceline stored in npz file with keys 'x' and 'y'
-		TODO: Add raceline.npz to this folder
+	def load_raceline(self, n_samples=500, raceline=None, file_name='rectangular_raceline.npz', smooth=False):
+		"""Load passed raceline or the one stored in npz file with keys 'x' and 'y'
+
+		Args:
+
+			n_samples: number of points on the to be on self.raceline
+			raceline (float, float): 2 x n array of waypoints
+			file_name: the file name from which the points will be extracted
+			smooth (bool): whether the curve must be smooth or have kinks (faster)
+
+		Todo:
+			* Add raceline.npz to this folder
 		"""
-		file_name = 'rectangular_raceline.npz'
-		file_path = os.path.join(os.path.dirname(__file__), 'src', file_name)
-		raceline = np.load(file_path)
-		n_samples = 500
+
+		if raceline is not None:
+			wx, wy = raceline
+		else:
+			file_path = os.path.join(os.path.dirname(__file__), 'src', file_name)
+			raceline = np.load(file_path)
+			wx, wy = np.array([raceline['x'], raceline['y']])
+
+		# this will set self.raceline, self.x_raceline and self.y_raceline
 		self._load_raceline(
-			wx=raceline['x'],
-			wy=raceline['y'],
-			n_samples=n_samples
+			wx=wx,
+			wy=wy,
+			n_samples=n_samples,
+			smooth=smooth
 		)
 
 	def plot(self, **kwargs):

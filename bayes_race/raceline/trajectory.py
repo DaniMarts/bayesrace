@@ -27,9 +27,10 @@ class randomTrajectory:
 		self.n_waypoints = n_waypoints
 
 	def sample_nodes(self, scale):
-		""" sample width vector of length `n_waypoints`
-		return:
-			width: a vector *random* perpendicular distances from the centreline for each waypoint
+		""" Sample width vector of length `n_waypoints`
+
+		Return:
+			width: a vector of *random* perpendicular distances from the centreline for each waypoint
 		"""
 		# shrink to prevent getting too close to corners
 		track_width = self.track.track_width*scale
@@ -38,8 +39,8 @@ class randomTrajectory:
 		return width
 
 	def calculate_xy(self, width, last_index, theta=None):
-		"""
-		compute x, y coordinates from sampled nodes (width)
+		"""compute x, y coordinates from sampled nodes (width)
+
 		Args:
 			width: width vector, n_waypoints long, with each element being a random value between -width/2 and width/2
 			last_index:
@@ -50,6 +51,7 @@ class randomTrajectory:
 		Todo:
 			* try to add more control points to theta where the curvature is high, so it doesn't cut corners.
 			* make start width and end width adjustable, so the car can start/finish not on the centreline.
+			* make it do laps, by repeating nodes if the last point (last_index) is not 0 or 1
 		"""
 
 		track = self.track
@@ -64,11 +66,12 @@ class randomTrajectory:
 		wx[-1] = track.x_center[last_index]  # this will make it always end in the center. Not always ideal.
 		wy[-1] = track.y_center[last_index]  # this will make it always end in the center. Not always ideal.
 		if theta is None:
+			# nodes will be evenly spaced if no `theta` is given.
 			theta = np.linspace(0, track.track_length, n_waypoints+2)
 		else:
 			assert n_waypoints==len(theta), 'dims not equal'
 			theta_start = np.array([0])
-			theta_end = np.array([self.track.theta_track[last_index]])
+			theta_end = np.array([self.track.theta_track[last_index]])  # not necessarily, if multiple laps
 			# in the end, theta will also have n_waypoints+2 elements
 			theta = np.concatenate([theta_start, theta, theta_end])
 
