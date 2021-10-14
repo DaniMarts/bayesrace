@@ -25,8 +25,6 @@ def plot_raceline(Track_type, class_params: dict, LASTIDX, Car_type, savestr, sa
 		savestr:
 		save_results:
 
-	Returns:
-
 	"""
 
 	TRACK_NAME = Track_type.__name__
@@ -97,11 +95,6 @@ def plot_raceline(Track_type, class_params: dict, LASTIDX, Car_type, savestr, sa
 	# calculating minimum possible time, speeds and inputs at each point in the raceline, for a particular car
 	time, speed, inputs = calcMinimumTimeSpeedInputs(x_nei, y_nei, **params)
 	x, y = np.array(x_nei), np.array(y_nei)
-	points = np.array([x, y]).T.reshape(-1, 1, 2)
-
-	# making the speed color-bar
-	# each row is a segment. One layer for x, other for y. Row n Column 1 has one point, Row n Col 2 has the other.
-	segments = np.concatenate([points[:-1], points[1:]], axis=1)
 
 	v_params = {"name": "speed", "cmap": "viridis", "arr": speed, "label": "Speed [$m/s$]",
 	            "title": "Optimal speed profile"}
@@ -112,31 +105,9 @@ def plot_raceline(Track_type, class_params: dict, LASTIDX, Car_type, savestr, sa
 	steer_params = {"name": "steer", "cmap": "brg", "arr": inputs[1], "label": "Steering angle [$deg$]",
 	                "title": "Steering profile"}
 
-	def make_colorbar(params):
-		arr = params["arr"]
-		cmap = params["cmap"]
-		label = params["label"]
-		title = params["title"]
-
-		fig = plot_track(track)
-		ax = plt.gca()
-		ax.axis('equal')
-		# plotting the waypoints of the raceline
-		plt.plot(wx_nei[:-1], wy_nei[:-1], linestyle='', marker='D', ms=5)
-		norm = plt.Normalize(arr.min(), arr.max())
-		lc = LineCollection(segments, cmap=cmap, norm=norm)
-		lc.set_array(arr)
-		lc.set_linewidth(2)
-		line = ax.add_collection(lc)
-		fig.colorbar(line, ax=ax, label=label)
-		plt.title(title)
-		ax.set_xlabel('x [m]')
-		ax.set_ylabel('y [m]')
-		plt.show()
-
-	make_colorbar(v_params)
-	make_colorbar(acc_params)
-	make_colorbar(steer_params)
+	make_colorbar(v_params, track, x, y, wx_nei, wy_nei)
+	make_colorbar(acc_params, track, x, y, wx_nei, wy_nei)
+	make_colorbar(steer_params, track, x, y, wx_nei, wy_nei)
 
 	if save_results:
 		np.savez('results/{}_optimalxy-{}.npz'.format(TRACK_NAME, savestr), x=x, y=y)
@@ -147,7 +118,43 @@ def plot_raceline(Track_type, class_params: dict, LASTIDX, Car_type, savestr, sa
 	return
 
 
+def make_colorbar(params, track, x, y, wx=None, wy=None):
+	if wy is None:
+		wy = []
+	if wx is None:
+		wx = []
+	arr = params["arr"]
+	cmap = params["cmap"]
+	label = params["label"]
+	title = params["title"]
+
+	points = np.array([x, y]).T.reshape(-1, 1, 2)
+
+	# making the speed color-bar
+	# each row is a segment. One layer for x, other for y. Row n Column 1 has one point, Row n Col 2 has the other.
+	segments = np.concatenate([points[:-1], points[1:]], axis=1)
+
+	fig = plot_track(track)
+	ax = plt.gca()
+	ax.axis('equal')
+	if wx is not None and wy is not None:
+		# plotting the waypoints of the raceline
+		plt.plot(wx[:-1], wy[:-1], linestyle='', marker='D', ms=5)
+	norm = plt.Normalize(arr.min(), arr.max())
+	lc = LineCollection(segments, cmap=cmap, norm=norm)
+	lc.set_array(arr)
+	lc.set_linewidth(2)
+	line = ax.add_collection(lc)
+	fig.colorbar(line, ax=ax, label=label)
+	ax.set_xlabel('x [m]')
+	ax.set_ylabel('y [m]')
+	plt.title(title)
+	plt.suptitle()
+	plt.show()
+
+
 def plot_track(track):
+	"""Plots the track"""
 	x_inner, y_inner = track.x_inner, track.y_inner
 	x_center, y_center = track.x_center, track.y_center
 	x_outer, y_outer = track.x_outer, track.y_outer

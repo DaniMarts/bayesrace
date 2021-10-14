@@ -44,7 +44,7 @@ track_xy_offset_in_np = np.array(track_xy_offset_in.exterior).T
 track_xy_offset_out_np = np.array(track_xy_offset_out.exterior).T
 #endregion Track boundary
 
-#region raceline
+#region racing line
 arc1 = np.array([-WIDTH / 2 + r_r * (1 - np.cos(angles)), length - (r_r - r_i) * np.sin(theta / 2) + r_r * np.sin(angles)])
 arc2 = np.array([-WIDTH / 2 - 2 * (r_r-r_i) * np.sin(theta/2) + breadth + r_r * (1 + np.sin(angles)), -(r_r - r_i) * np.cos(theta / 2) + length + r_r * np.cos(angles)])
 arc3 = np.array([-WIDTH / 2 - 2 * (r_r-r_i) * np.sin(theta/2) + breadth + r_r * (1 + np.cos(angles)), (r_r - r_i) * np.cos(theta / 2) - r_r * np.sin(angles)])
