@@ -50,9 +50,9 @@ PLOT_RESULTS = True  # whether to plot results
 PLOT_RACELINE = True  # whether to plot the best raceline
 SAVE_RESULTS = True  # whether to save results
 VERBOSE = False  # whether to print progress to terminal
-INTERACTIVE = True  # whether to plot the trajectories of each iteration
+INTERACTIVE = False  # whether to plot the trajectories of each iteration
 N_WAYPOINTS = 100  # resampled waypoints
-SCALE = 0.9  # shrinking factor for track width
+SCALE = 0.85  # shrinking factor for track width
 LASTIDX = 0  # fixed node at the end DO NOT CHANGE
 TRACK_NAME = "Rectangular"
 # define indices for the nodes
@@ -62,14 +62,14 @@ TRACK_NAME = "Rectangular"
 # track specific data
 
 params = F110()
-track = Rectangular(5, 6, 0.8, 1)
+track = Rectangular(8, 9, 0.8, 1)
 fig = track.plot(plot_centre=True)
 plt.show()
 
 track_width = track.track_width * SCALE
 # theta = track.theta_track[NODES]
 # N_DIMS = len(NODES)
-N_DIMS = 15
+N_DIMS = 17
 n_waypoints = N_DIMS
 
 # an object representing a random trajectory within the track
@@ -343,6 +343,8 @@ def optimize():
 					wx, wy = rand_traj.calculate_xy(
 						width=modes[i],
 						last_index=LASTIDX,
+						start_width=-track_width / 2,
+						end_width=-track_width / 2,
 					)
 
 					track.load_raceline(n_samples=500, raceline=[wx, wy], smooth=True)

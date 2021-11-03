@@ -11,12 +11,12 @@ from bayes_race.raceline.plot_raceline import plot_track, make_colorbar
 params = F110()  # the parameters of the F1Tenth car
 
 # parameters of the centreline of the track, in m
-length = 4
-breadth = 6
+LENGTH = 8
+BREADTH = 9
 width = 0.8
-r_corner = 0.3
+r_corner = 1
 
-track = Rectangular(length, breadth, width, r_corner)
+track = Rectangular(LENGTH, BREADTH, width, r_corner)
 
 theta = np.pi/2  # rad, the angle of the corner
 
@@ -25,12 +25,13 @@ r_i = r_i if r_i > 0 else 0
 r_o = r_corner + width/2  # m, outer radius
 r_r = r_i + (r_o - r_i)/(1-np.cos(theta/2))  # m, radius of the geometric line
 
-SCALE = 0.9  # how much of the track width can be explored
+SCALE = 0.85  # how much of the track width can be explored
 # parameters of the geometric line of the track, in m
-length = length + width * SCALE
-breadth = breadth + width * SCALE
-racing_line = Rectangular.make_rect(length, breadth, r_r, 500)
-
+length = LENGTH + width * SCALE
+breadth = BREADTH + width * SCALE
+racing_line = Rectangular.make_rect(length, breadth, r_r, 200)
+initial_segment = np.array([np.full((10,), racing_line[0][0]), np.linspace(-BREADTH/2+r_o, racing_line[1][0], 10)])
+racing_line = np.hstack([racing_line, initial_segment])
 time, speed, inputs = calcMinimumTimeSpeedInputs(*racing_line, **params)
 
 v_params = {"name": "speed", "cmap": "viridis", "arr": speed, "label": "Speed [$m/s$]",

@@ -80,8 +80,11 @@ class randomTrajectory:
 
 		# compute x, y for every way point parameterized by arc length
 		# for idt in range(1,n_waypoints+1):  # this won't touch the endpoints
-		wx[0], wy[0] = np.array(track.param_to_xy(theta[0])) + [start_width, 0]
-		wx[-1], wy[-1] = np.array(track.param_to_xy(theta[-1])) + [end_width, 0]
+		wx[0] = track.x_center[0] + start_width
+		wy[0] = track.y_center[0]
+		wx[-1] = track.x_center[last_index] + end_width
+		# wy[-1] = track.y_center[last_index]
+		wy[-1] = -1.52862915
 		for idt in range(1, n_waypoints + 1):
 			# calculating where on the actual track each point (x, y) will be
 			x_, y_ = track.param_to_xy(theta[idt]+eps)
@@ -89,8 +92,12 @@ class randomTrajectory:
 			x, y = track.param_to_xy(theta[idt])
 			norm = np.sqrt((y_-_y)**2 + (x_-_x)**2)
 			# the coordinates of the waypoints
-			wx[idt] = x - widths[idt-1]*(y_-_y)/norm
-			wy[idt] = y + widths[idt-1]*(x_-_x)/norm
+			wx[idt] = x - width[idt-1]*(y_-_y)/norm
+			wy[idt] = y + width[idt-1]*(x_-_x)/norm
+		# print("wx:", wx)
+		# print("-"*20)
+		# print("wy:", wy)
+		# print("AAAAAAAAAAAAAAAA")
 		return wx, wy
 
 	def fit_cubic_splines(self, wx, wy, n_samples):
