@@ -35,7 +35,7 @@ def define_params(mass, lf, lr):
     params['lr'] = lr
     params['mass'] = mass
     params['Fmax'] = Fmax
-    params['Flongmax'] = Fmax*Wr  # assuming only two wheel can accelerate (either read or forward)
+    params['Flongmax'] = Fmax*Wr  # assuming only two wheels can accelerate (either rear or front wheels)
     return params
 
 def define_path(x, y, plot_results=True):

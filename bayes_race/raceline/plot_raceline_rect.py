@@ -20,8 +20,8 @@ from plot_raceline import plot_raceline
 # savestr = '20211013231001'  # ok line on rounded 6x4, 0.8m wide track, 1 iterations, F110
 # savestr = '20211013233938'  # ok line on rounded 6x4, 0.8m wide track, 1 iterations, F110
 # savestr = '20211013235614'  # good line on rounded 6x4, 0.8m wide track, 1 iterations, F110
-# savestr = '20211014001407'  # good line on rounded 4x6, 0.8m wide track, 1 iterations, F110
-savestr = '2021-10-14-17_17_09'  # good line on rounded 4x6, 0.8m wide track, 3 iterations, F110
+savestr = '20211014001407'  # good line on rounded 4x6, 0.8m wide track, 1 iterations, F110
+# savestr = '2021-10-14-17_17_09'  # good line on rounded 4x6, 0.8m wide track, 3 iterations, F110
 
 track_params = {"length": 4, "breadth": 6, "width": 0.8, "r_corner": 0.3}
 plot_raceline(Rectangular, track_params, 0, F110, savestr, save_results=False)

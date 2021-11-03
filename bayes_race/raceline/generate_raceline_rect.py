@@ -62,7 +62,7 @@ TRACK_NAME = "Rectangular"
 # track specific data
 
 params = F110()
-track = Rectangular(4, 6, 0.8, 0.3)
+track = Rectangular(5, 6, 0.8, 1)
 fig = track.plot(plot_centre=True)
 plt.show()
 
@@ -84,7 +84,7 @@ def evaluate_y(x_eval, mean_y=None, std_y=None):
 	evaluate true output (time) for given x (distance of nodes from center line)
 
 	Args:
-		x_eval: an array containing the distance of each point to the centeline. Could be multiple rows,
+		x_eval: an array containing the distance of each point to the centreline. Could be multiple rows,
 			if parallelization is implemented
 		mean_y: mean time, from previous evaluations
 		std_y: standard deviation of time, from previous evaluations
@@ -461,7 +461,7 @@ def optimize():
 		sim, pidx = np.unravel_index(np.argmin(train_y_all_nei), train_y_all_nei.shape)
 		wx_nei, wy_nei, x_nei, y_nei = gen_traj(train_x_all_nei, pidx, sim)
 		plt.plot(wx_nei[:-1], wy_nei[:-1], linestyle='', marker='D', ms=5)
-		time, speed, inputs = calcMinimumTimeSpeedInputs(x_nei, y_nei, **params)
+		laptime, speed, inputs = calcMinimumTimeSpeedInputs(x_nei, y_nei, **params)
 		x = np.array(x_nei)
 		y = np.array(y_nei)
 		points = np.array([x, y]).T.reshape(-1, 1, 2)
@@ -478,7 +478,7 @@ def optimize():
 		if SAVE_RESULTS:
 			filepath = 'results/{}_bestlap-{}.png'.format(TRACK_NAME, savestr)  # path for saving result
 			np.savez('results/{}_optimalxy-{}.npz'.format(TRACK_NAME, savestr), x=x, y=y)
-			np.savez('results/{}_raceline-{}.npz'.format(TRACK_NAME, savestr), x=x, y=y, time=time, speed=speed,
+			np.savez('results/{}_raceline-{}.npz'.format(TRACK_NAME, savestr), x=x, y=y, time=laptime, speed=speed,
 			         inputs=inputs)
 			plt.savefig(filepath, dpi=600, bbox_inches='tight')
 

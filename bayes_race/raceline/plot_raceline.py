@@ -149,7 +149,7 @@ def make_colorbar(params, track, x, y, wx=None, wy=None):
 	ax.set_xlabel('x [m]')
 	ax.set_ylabel('y [m]')
 	plt.title(title)
-	plt.suptitle()
+	plt.tight_layout()
 	plt.show()
 
 
