@@ -38,13 +38,15 @@ class randomTrajectory:
 		width = -track_width/2 + track_width*np.random.rand(self.n_waypoints)
 		return width
 
-	def calculate_xy(self, width, last_index, theta=None):
+	def calculate_xy(self, width, last_index, theta=None, start_width=0., end_width=0.):
 		"""compute x, y coordinates from sampled nodes (width)
 
 		Args:
 			width: width vector, n_waypoints long, with each element being a random value between -width/2 and width/2
 			last_index:
 			theta: python list containing cumulative distance along the centreline, for each point
+			start_width: lateral displacement from the start node.
+			end_width: lateral displacement from the last_index-th node.
 
 		Returns:
 			(array, array): the coordinates of each waypoint in the track
@@ -61,10 +63,11 @@ class randomTrajectory:
 		# starting and terminal points are fixed # ? but do they have to be?
 		wx = np.zeros(n_waypoints+2)
 		wy = np.zeros(n_waypoints+2)
-		wx[0] = track.x_center[0]  # this will make it always start in the center. Not always ideal.
-		wy[0] = track.y_center[0]  # this will make it always start in the center. Not always ideal.
-		wx[-1] = track.x_center[last_index]  # this will make it always end in the center. Not always ideal.
-		wy[-1] = track.y_center[last_index]  # this will make it always end in the center. Not always ideal.
+		# wx[0] = track.x_center[0]  # this will make it always start in the center. Not always ideal.
+		# wy[0] = track.y_center[0]  # this will make it always start in the center. Not always ideal.
+		# wx[-1] = track.x_center[last_index]  # this will make it always end in the center. Not always ideal.
+		# wy[-1] = track.y_center[last_index]  # this will make it always end in the center. Not always ideal.
+		widths = np.concatenate([[start_width], width, [end_width]])  # vector with All perturbations
 		if theta is None:
 			# nodes will be evenly spaced if no `theta` is given.
 			theta = np.linspace(0, track.track_length, n_waypoints+2)
@@ -76,15 +79,18 @@ class randomTrajectory:
 			theta = np.concatenate([theta_start, theta, theta_end])
 
 		# compute x, y for every way point parameterized by arc length
-		for idt in range(1,n_waypoints+1):  # this won't touch the endpoints
+		# for idt in range(1,n_waypoints+1):  # this won't touch the endpoints
+		wx[0], wy[0] = np.array(track.param_to_xy(theta[0])) + [start_width, 0]
+		wx[-1], wy[-1] = np.array(track.param_to_xy(theta[-1])) + [end_width, 0]
+		for idt in range(1, n_waypoints + 1):
 			# calculating where on the actual track each point (x, y) will be
 			x_, y_ = track.param_to_xy(theta[idt]+eps)
 			_x, _y = track.param_to_xy(theta[idt]-eps)
 			x, y = track.param_to_xy(theta[idt])
 			norm = np.sqrt((y_-_y)**2 + (x_-_x)**2)
 			# the coordinates of the waypoints
-			wx[idt] = x - width[idt-1]*(y_-_y)/norm
-			wy[idt] = y + width[idt-1]*(x_-_x)/norm
+			wx[idt] = x - widths[idt-1]*(y_-_y)/norm
+			wy[idt] = y + widths[idt-1]*(x_-_x)/norm
 		return wx, wy
 
 	def fit_cubic_splines(self, wx, wy, n_samples):

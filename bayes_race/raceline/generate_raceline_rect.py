@@ -50,7 +50,7 @@ PLOT_RESULTS = True  # whether to plot results
 PLOT_RACELINE = True  # whether to plot the best raceline
 SAVE_RESULTS = True  # whether to save results
 VERBOSE = False  # whether to print progress to terminal
-INTERACTIVE = False  # whether to plot the trajectories of each iteration
+INTERACTIVE = True  # whether to plot the trajectories of each iteration
 N_WAYPOINTS = 100  # resampled waypoints
 SCALE = 0.9  # shrinking factor for track width
 LASTIDX = 0  # fixed node at the end DO NOT CHANGE
@@ -112,6 +112,8 @@ def evaluate_y(x_eval, mean_y=None, std_y=None):
 		wx, wy = rand_traj.calculate_xy(
 			width=x_eval[ids],
 			last_index=LASTIDX,
+			start_width=-track_width/2,
+			end_width=-track_width/2,
 			# theta=theta,
 		)
 		# fitting splines on the (wx, wy) points and resampling new points from it
