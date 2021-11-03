@@ -18,7 +18,7 @@ def F110():
 	hcog = 0.074            # ? height of center of gravity
 	mu = 0.523              # ? friction coefficient
 	min_v = 0.
-	max_v = 20.
+	max_v = 20.             # ? km/h
 	switch_v = 1.           # ?
 	max_acc = 9.51 			# max acceleration [m/s^2]
 	min_acc = -13.26 		# max deceleration [m/s^2]
