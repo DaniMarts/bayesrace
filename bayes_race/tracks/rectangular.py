@@ -237,6 +237,69 @@ class Rectangular(Track):
 
 # Example
 if __name__ == "__main__":
-	rec = Rectangular(6, 4, 0.8, 0.3)
-	fig = rec.plot(plot_centre=True)
+	from bayes_race.params import F110
+	from bayes_race.raceline import randomTrajectory
+
+	# PLOTTING JUST THE TRACK
+	track = Rectangular(8, 9, 0.8, 1)
+	fig = track.plot(plot_centre=True)
+	plt.ylabel("y [m]")
+	plt.xlabel("x [m]")
+	plt.title("Rectangular track")
+	plt.show()
+
+	# THE RACELINE ON THE TRACK
+	SCALE = 0.85  # so that no waypoint is on the edges or corners
+
+	# choose vehicle params and specify indices of the nodes
+	params = F110()
+	LASTIDX = 0
+
+	n_waypoints = 50
+
+	# sample a random trajectory
+	rand_traj = randomTrajectory(
+		track=track,
+		n_waypoints=n_waypoints,
+	)
+	width_random = rand_traj.sample_nodes(scale=SCALE)
+	width_center = np.zeros(n_waypoints)
+	# find corresponding x,y coordinates
+	# here we choose terminal point to be the first point to prevent crashing before finishing
+	wx_random, wy_random = rand_traj.calculate_xy(
+		width_random,
+		last_index=LASTIDX,
+		start_width=-track.width/2*SCALE,
+		end_width=-track.width/2*SCALE,
+	)
+
+	wx_center, wy_center = rand_traj.calculate_xy(
+		width_center,
+		last_index=LASTIDX,
+		start_width=-track.width/2*SCALE,
+		end_width=-track.width/2*SCALE,
+	)
+
+	# resample after fitting cubic splines
+	n_samples = 100
+	x_random, y_random = rand_traj.fit_cubic_splines(
+		wx=wx_random,
+		wy=wy_random,
+		n_samples=n_samples
+	)
+
+	# plot
+	fig = track.plot(color='k', grid=False)
+	x_center, y_center = track.x_center, track.y_center
+	plt.plot(x_center, y_center, '--k', alpha=0.5, lw=0.5)
+	plt.plot(x_random, y_random, label='trajectory', lw=1.5)
+	plt.plot(wx_random, wy_random, 'xk', label='way points')
+	plt.plot(wx_center, wy_center, 'D', ms=2, label='nodes')
+	plt.plot(wx_random[0], wy_random[0], 'or', label='start')
+	plt.plot(wx_random[-1], wy_random[-1], 'o', color="#00a020", label='finish')
+	plt.axis('equal')
+	# plt.tight_layout()
+	plt.xlabel('x [m]')
+	plt.ylabel('y [m]')
+	plt.legend(loc=0)
 	plt.show()

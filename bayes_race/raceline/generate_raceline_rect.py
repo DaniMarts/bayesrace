@@ -462,7 +462,7 @@ def optimize():
 		plt.plot(x_inner, y_inner, 'k', lw=0.5, alpha=0.5)
 
 		# best trajectory (assuming qNEI is the best)
-		sim, pidx = np.unravel_index(np.argmin(train_y_all_nei), train_y_all_nei.shape)
+		sim, pidx = np.unravel_index(np.argmin(train_y_all_nei), np.array(train_y_all_nei).shape)
 		wx_nei, wy_nei, x_nei, y_nei = gen_traj(train_x_all_nei, pidx, sim)
 		plt.plot(wx_nei[:-1], wy_nei[:-1], linestyle='', marker='D', ms=5)
 		laptime, speed, inputs = calcMinimumTimeSpeedInputs(x_nei, y_nei, **params)

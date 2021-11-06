@@ -14,7 +14,7 @@ from matplotlib.collections import LineCollection
 from matplotlib.colors import ListedColormap, BoundaryNorm
 
 
-def plot_raceline(Track_type, class_params: dict, LASTIDX, Car_type, savestr, save_results=False):
+def plot_raceline(Track_type, class_params: dict, LASTIDX, Car_type, savestr, save_results=False, line_type="EI"):
 	"""
 
 	Args:
@@ -24,6 +24,7 @@ def plot_raceline(Track_type, class_params: dict, LASTIDX, Car_type, savestr, sa
 		Car_type:
 		savestr:
 		save_results:
+		line_type: the method used to get the raceline (EI, NEI, random)
 
 	"""
 
@@ -54,6 +55,7 @@ def plot_raceline(Track_type, class_params: dict, LASTIDX, Car_type, savestr, sa
 	filepath = 'results/{}_convergence.png'.format(TRACK_NAME)
 
 	def ci(y):
+		# credible interval of 95% is about 1.96 stddev
 		return 1.96 * y.std(axis=0) / np.sqrt(N_TRIALS)
 
 	plt.figure()
@@ -62,16 +64,16 @@ def plot_raceline(Track_type, class_params: dict, LASTIDX, Car_type, savestr, sa
 	plt.gca().set_prop_cycle(None)
 	plt.plot(iters, y_rnd.mean(axis=0), linewidth=1.5)
 	plt.plot(iters, y_ei.mean(axis=0), linewidth=1.5)
-	plt.plot(iters, y_nei.mean(axis=0), linewidth=1.5)
+	# plt.plot(iters, y_nei.mean(axis=0), linewidth=1.5)
 
 	plt.gca().set_prop_cycle(None)
 	plt.fill_between(iters, y_rnd.mean(axis=0) - ci(y_rnd), y_rnd.mean(axis=0) + ci(y_rnd), label="random", alpha=0.2)
 	plt.fill_between(iters, y_ei.mean(axis=0) - ci(y_ei), y_ei.mean(axis=0) + ci(y_ei), label="EI", alpha=0.2)
-	plt.fill_between(iters, y_nei.mean(axis=0) - ci(y_nei), y_nei.mean(axis=0) + ci(y_nei), label="NEI", alpha=0.2)
+	# plt.fill_between(iters, y_nei.mean(axis=0) - ci(y_nei), y_nei.mean(axis=0) + ci(y_nei), label="NEI", alpha=0.2)
 
 	plt.xlabel('# number of observations (beyond initial points)')
 	plt.ylabel('best lap times [s]')
-	plt.xlim([0, 50])
+	plt.xlim([0, 100])
 	plt.legend(loc='lower left')
 
 	if save_results:
@@ -82,32 +84,49 @@ def plot_raceline(Track_type, class_params: dict, LASTIDX, Car_type, savestr, sa
 	filepath = 'results/{}_bestlap-{}.png'.format(TRACK_NAME, savestr)  # path for saving result
 
 	n_waypoints = N_DIMS
-	n_samples = 500
+	n_samples = 100
 
 	rand_traj = randomTrajectory(track=track, n_waypoints=n_waypoints)
 
 	# best trajectory (assuming qNEI is the best)
-	sim, pidx = np.unravel_index(np.argmin(train_y_all_nei), train_y_all_nei.shape)
-	# getting the best x, y from the raceline
-	best_x = train_x_all_nei[sim][pidx]
-	wx_nei, wy_nei, x_nei, y_nei = gen_traj(rand_traj, best_x, n_samples, LASTIDX)
+	if line_type == "NEI":
+		sim, pidx = np.unravel_index(np.argmin(train_y_all_nei), train_y_all_nei.shape)
+		# getting the best x, y from the raceline
+		best_x = train_x_all_nei[sim][pidx]
+	elif line_type == "EI":
+		sim, pidx = np.unravel_index(np.argmin(train_y_all_ei), train_y_all_ei.shape)
+		# getting the best x, y from the raceline
+		best_x = train_x_all_ei[sim][pidx]
+	else:
+		sim, pidx = np.unravel_index(np.argmin(train_y_all_random), train_y_all_random.shape)
+		# getting the best x, y from the raceline
+		best_x = train_x_all_random[sim][pidx]
+
+	wx_best, wy_best, x_best, y_best = gen_traj(
+		rand_traj,
+		best_x,
+		n_samples,
+		LASTIDX,
+		start_width=-0.34,
+		end_width=-0.34,
+	)
 
 	# calculating minimum possible time, speeds and inputs at each point in the raceline, for a particular car
-	time, speed, inputs = calcMinimumTimeSpeedInputs(x_nei, y_nei, **params)
-	x, y = np.array(x_nei), np.array(y_nei)
+	time, speed, inputs = calcMinimumTimeSpeedInputs(x_best, y_best, **params)
+	x, y = np.array(x_best), np.array(y_best)
 
 	v_params = {"name": "speed", "cmap": "viridis", "arr": speed, "label": "Speed [$m/s$]",
-	            "title": "Optimal speed profile"}
+	            "suptitle": f"Optimal speed profile using {line_type}", "title":f"lap-time: {round(time[-1], 3)} s"}
 
 	acc_params = {"name": "acc", "cmap": "RdYlGn", "arr": inputs[0], "label": "Longitudinal acceleration [$m/s^2$]",
-	              "title": "Optimal acceleration profile"}
+	              "suptitle": f"Optimal acceleration profile using {line_type}", "title":f"lap-time: {round(time[-1], 3)} s"}
 
 	steer_params = {"name": "steer", "cmap": "brg", "arr": inputs[1], "label": "Steering angle [$deg$]",
-	                "title": "Steering profile"}
+	                "suptitle": f"Steering profile using {line_type}", "title":f"lap-time: {round(time[-1], 3)} s"}
 
-	make_colorbar(v_params, track, x, y, wx_nei, wy_nei)
-	make_colorbar(acc_params, track, x, y, wx_nei, wy_nei)
-	make_colorbar(steer_params, track, x, y, wx_nei, wy_nei)
+	make_colorbar(v_params, track, x, y, wx_best, wy_best)
+	make_colorbar(acc_params, track, x, y, wx_best, wy_best)
+	make_colorbar(steer_params, track, x, y, wx_best, wy_best)
 
 	if save_results:
 		np.savez('results/{}_optimalxy-{}.npz'.format(TRACK_NAME, savestr), x=x, y=y)
@@ -127,6 +146,7 @@ def make_colorbar(params, track, x, y, wx=None, wy=None):
 	cmap = params["cmap"]
 	label = params["label"]
 	title = params["title"]
+	suptitle = params["suptitle"]
 
 	points = np.array([x, y]).T.reshape(-1, 1, 2)
 
@@ -139,7 +159,7 @@ def make_colorbar(params, track, x, y, wx=None, wy=None):
 	ax.axis('equal')
 	if wx is not None and wy is not None:
 		# plotting the waypoints of the raceline
-		plt.plot(wx[:-1], wy[:-1], linestyle='', marker='D', ms=5)
+		plt.plot(wx[:-1], wy[:-1], linestyle='', marker='D', ms=4, c="k")
 	norm = plt.Normalize(arr.min(), arr.max())
 	lc = LineCollection(segments, cmap=cmap, norm=norm)
 	lc.set_array(arr)
@@ -148,8 +168,12 @@ def make_colorbar(params, track, x, y, wx=None, wy=None):
 	fig.colorbar(line, ax=ax, label=label)
 	ax.set_xlabel('x [m]')
 	ax.set_ylabel('y [m]')
-	plt.title(title)
-	plt.tight_layout()
+	plt.plot(x[0], y[0], 'o', color="#00a020", label='start')
+	plt.plot(x[-1], y[-1], 'or', label='finish')
+	plt.suptitle(suptitle, y=1, fontsize=16)
+	plt.title(title, fontsize=12)
+	# plt.tight_layout()
+	plt.legend(loc=0)
 	plt.show()
 
 
@@ -168,12 +192,14 @@ def plot_track(track):
 	return fig
 
 
-def gen_traj(traj: randomTrajectory, best_waypoints, n_samples, last_index=0, theta=None):
+def gen_traj(traj: randomTrajectory, best_waypoints, n_samples, last_index=0, theta=None, start_width=0., end_width=0.):
 	"""Calculates x, y points of the resampled optimum raceline"""
 	wx, wy = traj.calculate_xy(
 		width=best_waypoints,
 		last_index=last_index,
 		theta=theta,
+		start_width=start_width,
+		end_width=end_width,
 	)
 	sp = Spline2D(wx, wy)
 	s = np.linspace(0, sp.s[-1] - 0.001, n_samples)

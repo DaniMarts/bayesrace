@@ -125,10 +125,9 @@ if __name__ == '__main__':
 
 	# choose vehicle params and specify indices of the nodes
 	params = F110()
-	track = MAP8()
-	NODES = [5, 15, 25, 35, 45, 55, 65, 75, 85, 95, 105, 115, 5]
-	LASTIDX = 1
-	# TODO: find way to complete multiple laps
+	track = MAP2()
+	NODES = [5, 15, 25, 35, 45, 55, 65, 75, 85, 95, 105, 115]
+	LASTIDX = -5
 
 	print(track.x_raceline.shape)
 	# find corresponding distance in path coordinates
@@ -146,30 +145,38 @@ if __name__ == '__main__':
 	# here we choose terminal point to be the first point to prevent crashing before finishing
 	wx_random, wy_random = rand_traj.calculate_xy(
 		width_random,
-		last_index=NODES[LASTIDX],
-		theta=theta,
+		last_index=LASTIDX,
+		# last_index=NODES[LASTIDX],
+		# theta=theta,
 		)
 
 	# resample after fitting cubic splines
-	n_samples = 500
+	n_samples = 100
 	x_random, y_random = rand_traj.fit_cubic_splines(
 		wx=wx_random, 
 		wy=wy_random, 
 		n_samples=n_samples
 		)
 
+	width_center = np.zeros(n_waypoints)
+	wx_center, wy_center = rand_traj.calculate_xy(
+		width_center,
+		last_index=LASTIDX,
+	)
 	# plot
 	fig = track.plot(color='k', grid=False)
 	x_center, y_center = track.x_center, track.y_center
 	plt.plot(x_center, y_center, '--k', alpha=0.5, lw=0.5)
-	plt.plot(x_random, y_random, label='splines', lw=1.5)
+	plt.plot(x_random, y_random, label='trajectory', lw=1.5)
 	plt.plot(wx_random, wy_random, 'x', label='way points')
+	plt.plot(wx_center, wy_center, 'D', ms=2, label='nodes')
 	plt.plot(wx_random[0], wy_random[0], 'o', label='start')
 	plt.plot(wx_random[-1], wy_random[-1], 'o', label='finish')
 	plt.axis('equal')
 	plt.xlabel('x [m]')
 	plt.ylabel('y [m]')
 	plt.legend(loc=0)
+	plt.tight_layout()
 	plt.show()
 
 
